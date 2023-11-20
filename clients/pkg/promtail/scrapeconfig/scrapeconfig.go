@@ -47,10 +47,11 @@ type Config struct {
 	HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 	RelabelConfigs       []*relabel.Config           `mapstructure:"relabel_configs,omitempty" yaml:"relabel_configs,omitempty"`
 	// List of Docker service discovery configurations.
-	DockerSDConfigs        []*moby.DockerSDConfig `mapstructure:"docker_sd_configs,omitempty" yaml:"docker_sd_configs,omitempty"`
-	ServiceDiscoveryConfig ServiceDiscoveryConfig `mapstructure:",squash" yaml:",inline"`
-	Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
-	DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
+	DockerSDConfigs        []*moby.DockerSDConfig      `mapstructure:"docker_sd_configs,omitempty" yaml:"docker_sd_configs,omitempty"`
+	DockerSwarmSDConfigs   []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
+	ServiceDiscoveryConfig ServiceDiscoveryConfig      `mapstructure:",squash" yaml:",inline"`
+	Encoding               string                      `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
+	DecompressionCfg       *DecompressionConfig        `yaml:"decompression,omitempty"`
 }
 
 type DecompressionConfig struct {
@@ -72,8 +73,8 @@ type ServiceDiscoveryConfig struct {
 	ConsulAgentSDConfigs []*consulagent.SDConfig `mapstructure:"consulagent_sd_configs,omitempty" yaml:"consulagent_sd_configs,omitempty"`
 	// List of DigitalOcean service discovery configurations.
 	DigitalOceanSDConfigs []*digitalocean.SDConfig `mapstructure:"digitalocean_sd_configs,omitempty" yaml:"digitalocean_sd_configs,omitempty"`
-	// List of Docker Swarm service discovery configurations.
-	DockerSwarmSDConfigs []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
+	// // List of Docker Swarm service discovery configurations.
+	// DockerSwarmSDConfigs []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
 	// List of Serverset service discovery configurations.
 	ServersetSDConfigs []*zookeeper.ServersetSDConfig `mapstructure:"serverset_sd_configs,omitempty" yaml:"serverset_sd_configs,omitempty"`
 	// NerveSDConfigs is a list of Nerve service discovery configurations.
@@ -113,9 +114,9 @@ func (cfg ServiceDiscoveryConfig) Configs() (res discovery.Configs) {
 	for _, x := range cfg.DigitalOceanSDConfigs {
 		res = append(res, x)
 	}
-	for _, x := range cfg.DockerSwarmSDConfigs {
-		res = append(res, x)
-	}
+	// for _, x := range cfg.DockerSwarmSDConfigs {
+	// 	res = append(res, x)
+	// }
 	for _, x := range cfg.ServersetSDConfigs {
 		res = append(res, x)
 	}

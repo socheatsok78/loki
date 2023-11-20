@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/targets/azureeventhubs"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/cloudflare"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/docker"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/dockerswarm"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/gcplog"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/gelf"
@@ -39,6 +40,7 @@ const (
 	CloudflareConfigs           = "cloudflareConfigs"
 	DockerConfigs               = "dockerConfigs"
 	DockerSDConfigs             = "dockerSDConfigs"
+	DockerSwarmSDConfigs        = "dockerSwarmSDConfigs"
 	HerokuDrainConfigs          = "herokuDrainConfigs"
 	AzureEventHubsScrapeConfigs = "azureeventhubsScrapeConfigs"
 )
@@ -50,6 +52,7 @@ var (
 	gelfMetrics        *gelf.Metrics
 	cloudflareMetrics  *cloudflare.Metrics
 	dockerMetrics      *docker.Metrics
+	dockerswarmMetrics *dockerswarm.Metrics
 	journalMetrics     *journal.Metrics
 	herokuDrainMetrics *heroku.Metrics
 )
@@ -114,6 +117,8 @@ func NewTargetManagers(
 			targetScrapeConfigs[CloudflareConfigs] = append(targetScrapeConfigs[CloudflareConfigs], cfg)
 		case cfg.DockerSDConfigs != nil:
 			targetScrapeConfigs[DockerSDConfigs] = append(targetScrapeConfigs[DockerSDConfigs], cfg)
+		case cfg.DockerSwarmSDConfigs != nil:
+			targetScrapeConfigs[DockerSwarmSDConfigs] = append(targetScrapeConfigs[DockerSwarmSDConfigs], cfg)
 		case cfg.HerokuDrainConfig != nil:
 			targetScrapeConfigs[HerokuDrainConfigs] = append(targetScrapeConfigs[HerokuDrainConfigs], cfg)
 		default:
@@ -152,6 +157,9 @@ func NewTargetManagers(
 	}
 	if (len(targetScrapeConfigs[DockerConfigs]) > 0 || len(targetScrapeConfigs[DockerSDConfigs]) > 0) && dockerMetrics == nil {
 		dockerMetrics = docker.NewMetrics(reg)
+	}
+	if (len(targetScrapeConfigs[DockerSwarmSDConfigs]) > 0) && dockerswarmMetrics == nil {
+		dockerswarmMetrics = dockerswarm.NewMetrics(reg)
 	}
 	if len(targetScrapeConfigs[JournalScrapeConfigs]) > 0 && journalMetrics == nil {
 		journalMetrics = journal.NewMetrics(reg)
@@ -287,6 +295,16 @@ func NewTargetManagers(
 			cfTargetManager, err := docker.NewTargetManager(dockerMetrics, logger, pos, client, scrapeConfigs)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to make Docker service discovery target manager")
+			}
+			targetManagers = append(targetManagers, cfTargetManager)
+		case DockerSwarmSDConfigs:
+			pos, err := getPositionFile()
+			if err != nil {
+				return nil, err
+			}
+			cfTargetManager, err := dockerswarm.NewTargetManager(dockerswarmMetrics, logger, pos, client, scrapeConfigs)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to make Docker Swarm service discovery target manager")
 			}
 			targetManagers = append(targetManagers, cfTargetManager)
 		default:
